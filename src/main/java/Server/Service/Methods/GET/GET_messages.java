@@ -3,27 +3,32 @@ package Server.Service.Methods.GET;
 import Server.Domain.MessageSave;
 import Server.Model.Message;
 import Server.Service.Methods.IHTTPMethod;
-import Server.Service.Request.RequestContext;
+import Server.Service.Request.IRequestContext;
+import Server.Service.Response.IResponseContext;
 import Server.Service.Response.ResponseContext;
 
 public class GET_messages implements IHTTPMethod {
 
     @Override
-    public Boolean analyse(RequestContext data) {
+    public Boolean analyse(IRequestContext data) {
         return data.getHttpVerb_Res().startsWith("GET /messages ");
     }
 
     @Override
-    public ResponseContext exec(RequestContext data) {
+    public IResponseContext exec(IRequestContext data) {
         ResponseContext responseContext = new ResponseContext();
-        responseContext.setHTTPStatusCode("HTTP/1.1 200 \r\n");
-        responseContext.getHeaders().put("Connection", "close\r\n");
-        responseContext.getHeaders().put("Content-Type", "text/plain\r\n");
+
         String messagesString="";
-        for (Message message : MessageSave.messages) {
+        for (Message message : MessageSave.messages) {//TODO: Change so that messages get read from file
             messagesString+=message.getId()+":\n"+message.getContent()+"\n";
         }
-        responseContext.setPayload("\r\n"+messagesString);
+        responseContext.setPayload(messagesString);
+        responseContext.setHttpStatusCode("HTTP/1.1 200");
+        responseContext.getHeaders().put("Content-Lenght",  String.valueOf(messagesString.length()));
+        responseContext.getHeaders().put("Content-Type", "text/plain");
+        responseContext.getHeaders().put("Connection", "close");
+
+
         return responseContext;
     }
 }

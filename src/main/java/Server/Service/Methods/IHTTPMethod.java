@@ -1,11 +1,14 @@
 package Server.Service.Methods;
 
-import Server.Service.Request.RequestContext;
-import Server.Service.Response.ResponseContext;
+import Server.Service.Request.IRequestContext;
+import Server.Service.Response.IResponseContext;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import java.io.IOException;
 
 public interface IHTTPMethod {
 
-    Boolean analyse(RequestContext data);
+    Boolean analyse(IRequestContext data);
 
-    ResponseContext exec(RequestContext data);
+    IResponseContext exec(IRequestContext data) throws IOException;
 }

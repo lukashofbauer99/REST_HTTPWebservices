@@ -1,23 +1,28 @@
 package Server.Service;
+
 import Server.Service.Methods.DELETE.DELETE_message_Id;
+import Server.Service.Methods.Error.NotFound;
 import Server.Service.Methods.GET.GET_message_Id;
 import Server.Service.Methods.GET.GET_messages;
 import Server.Service.Methods.IHTTPMethod;
 import Server.Service.Methods.POST.POST_messages;
 import Server.Service.Methods.PUT.PUT_messages_Id;
+import Server.Service.Request.IRequestContext;
 import Server.Service.Request.RequestContext;
-import Server.Service.Response.ResponseContext;
+import Server.Service.Socket.IMySocket;
+import Server.Service.Socket.MySocket;
 
 import java.io.*;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+//TODO: https://stackoverflow.com/questions/30901173/handling-post-request-via-socket-in-java
+//200, 201, 400, 404
 //Postman / Insomnia
 //Bekommenen Nachrichte aufsplitten HEADER BODY USW
 //Selenium
+//TODO add threading
 public class MainServer implements Runnable {
 
     private static ServerSocket _listener = null;
@@ -25,11 +30,8 @@ public class MainServer implements Runnable {
 
     public static void main(String[] args) {
         System.out.println("start server");
-        List<String> request;
-        List<String> response;
-        RequestContext requestContext;
-        ResponseContext responseContext = null;
-        List<IHTTPMethod> registeredMethods= new ArrayList<>();
+        IRequestContext requestContext;
+        List<IHTTPMethod> registeredMethods = new ArrayList<>();
 
         //register Methods
         registeredMethods.add(new GET_messages());
@@ -37,6 +39,8 @@ public class MainServer implements Runnable {
         registeredMethods.add(new PUT_messages_Id());
         registeredMethods.add(new GET_message_Id());
         registeredMethods.add(new POST_messages());
+
+        registeredMethods.add(new NotFound());
 
 
         try {
@@ -50,59 +54,29 @@ public class MainServer implements Runnable {
 
         try {
             while (true) {
-                request= new ArrayList<>();
-                Socket s = _listener.accept();
+                IMySocket s = new MySocket(_listener.accept());
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
                 BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
 
+                requestContext = new RequestContext(reader);
 
-                String line;
-                while ((line = reader.readLine()) != null) {
-                   if (line.isEmpty())
-                        break;
-                    request.add(line);
-                    System.out.println(line + "\n");
-                }
+                if (!requestContext.getHeaders().isEmpty()) {
+                    System.out.println(requestContext.formatedString());
 
-                reader.skip(1);
-                while ((line = reader.readLine()) != null) {        //Doesnt Read more than one line
-                    if (line.isEmpty())
-                        break;
-                    request.add(line);
-                    System.out.println(line + "\n");
-                }
-
-                if(!request.isEmpty()) {
-                    requestContext = new RequestContext(request);
-
-                    List<String> responseList;
-
-                    for(IHTTPMethod method : registeredMethods)
-                    {
-                        if(method.analyse(requestContext)) {
-                            responseList = method.exec(requestContext).toList();
-                            for (String respLine: responseList)
-                            {
-                                writer.write(respLine);
-                                writer.newLine();
-                            }
+                    for (IHTTPMethod method : registeredMethods) {
+                        if (method.analyse(requestContext)) {
+                            method.exec(requestContext).SendResponse(writer);
+                            break;
                         }
                     }
-
-                    /*
-                    writer.write("HTTP/1.1 200 \r\n"); // Version & status code
-                    writer.newLine();
-                    writer.write("Content-Type: text/plain\r\n"); // The type of data
-                    writer.newLine();
-                    writer.write("Connection: close\r\n"); // Will close stream
-                    writer.newLine();
-                    writer.write("\r\n"); // End of headers
-                    */
-
                 }
 
-                writer.close(); // Flush and close the output stream
-                reader.close(); // Close the input stream
+
+                writer.write("");
+
+
+                writer.close();
+                reader.close();
                 s.close(); // Close the socket itself
             }
         } catch (Exception e) {

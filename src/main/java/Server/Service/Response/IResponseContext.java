@@ -12,6 +12,6 @@ public interface IResponseContext {
 
     void setPayload(String payload);
 
-    void SendResponse(BufferedWriter writer) throws IOException;
+    void sendResponse(BufferedWriter writer) throws IOException;
 
 }

@@ -1,12 +1,15 @@
 package Server.Service.Request;
 
-import Server.Service.Socket.IMySocket;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
+@AllArgsConstructor
 public class RequestContext implements IRequestContext{
 
     String httpVerb_Res;
@@ -16,9 +19,14 @@ public class RequestContext implements IRequestContext{
     String payload="";
 
 
-    public RequestContext(BufferedReader reader) throws IOException {
-            int contentLength = readHttpHeader( reader );
-            payload = readHttpBody( reader, contentLength );
+    public RequestContext(BufferedReader reader) {
+        int contentLength;
+        try {
+            contentLength = readHttpHeader( reader );
+        payload = readHttpBody( reader, contentLength );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

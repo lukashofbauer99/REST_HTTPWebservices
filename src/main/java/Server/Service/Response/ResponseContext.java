@@ -18,7 +18,7 @@ public class ResponseContext implements IResponseContext {
 
     Map<String,String> headers= new HashMap<>();
 
-    String payload;
+    String payload = "";
 
     private List<String> toList()
     {
@@ -31,7 +31,7 @@ public class ResponseContext implements IResponseContext {
         return list;
     }
 
-    public void SendResponse(BufferedWriter writer) throws IOException {
+    public void sendResponse(BufferedWriter writer) throws IOException {
         System.out.println(httpStatusCode);
         writer.write(httpStatusCode);
         writer.newLine();
@@ -43,7 +43,6 @@ public class ResponseContext implements IResponseContext {
         writer.write("\r\n");
         System.out.println(payload);
         writer.write(payload);
-        writer.newLine();
         writer.flush();
     }
 }

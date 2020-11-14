@@ -1,14 +1,12 @@
 package Server.Service;
 
-import Server.Service.Methods.DELETE.DELETE_message_Id;
+import Server.Service.Methods.DELETE.DELETE_messages_Id;
 import Server.Service.Methods.Error.NotFound;
-import Server.Service.Methods.GET.GET_message_Id;
+import Server.Service.Methods.GET.GET_messages_Id;
 import Server.Service.Methods.GET.GET_messages;
 import Server.Service.Methods.IHTTPMethod;
 import Server.Service.Methods.POST.POST_messages;
 import Server.Service.Methods.PUT.PUT_messages_Id;
-import Server.Service.Request.IRequestContext;
-import Server.Service.Request.RequestContext;
 import Server.Service.Socket.IMySocket;
 import Server.Service.Socket.MySocket;
 
@@ -17,10 +15,8 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO: https://stackoverflow.com/questions/30901173/handling-post-request-via-socket-in-java
 //200, 201, 400, 404
 //Postman / Insomnia
-//Bekommenen Nachrichte aufsplitten HEADER BODY USW
 //Selenium
 //TODO add threading
 public class MainServer implements Runnable {
@@ -30,14 +26,14 @@ public class MainServer implements Runnable {
 
     public static void main(String[] args) {
         System.out.println("start server");
-        IRequestContext requestContext;
+
         List<IHTTPMethod> registeredMethods = new ArrayList<>();
 
         //register Methods
         registeredMethods.add(new GET_messages());
-        registeredMethods.add(new DELETE_message_Id());
+        registeredMethods.add(new DELETE_messages_Id());
         registeredMethods.add(new PUT_messages_Id());
-        registeredMethods.add(new GET_message_Id());
+        registeredMethods.add(new GET_messages_Id());
         registeredMethods.add(new POST_messages());
 
         registeredMethods.add(new NotFound());
@@ -52,35 +48,17 @@ public class MainServer implements Runnable {
 
         Runtime.getRuntime().addShutdownHook(new Thread(new MainServer()));
 
-        try {
-            while (true) {
+        while (true) {
+            try {
                 IMySocket s = new MySocket(_listener.accept());
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-                BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
-
-                requestContext = new RequestContext(reader);
-
-                if (!requestContext.getHeaders().isEmpty()) {
-                    System.out.println(requestContext.formatedString());
-
-                    for (IHTTPMethod method : registeredMethods) {
-                        if (method.analyse(requestContext)) {
-                            method.exec(requestContext).SendResponse(writer);
-                            break;
-                        }
-                    }
-                }
+                new Thread(new WorkerThread(s,registeredMethods)).start();
 
 
-                writer.write("");
-
-
-                writer.close();
-                reader.close();
-                s.close(); // Close the socket itself
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+
         }
     }
 

@@ -1,4 +1,4 @@
-package Server.Service.Methods.PUT;
+package Server.Service.Methods.DELETE;
 
 import Server.Domain.IRepository;
 import Server.Domain.MessageRepository;
@@ -14,33 +14,29 @@ import static java.lang.Integer.parseInt;
 
 @AllArgsConstructor
 @NoArgsConstructor
-public class PUT_messages_Id implements IHTTPMethod {
+public class DELETE_messages_Id implements IHTTPMethod {
 
     IRepository<Message> repository = new MessageRepository();
 
     @Override
     public Boolean analyse(IRequestContext data) {
-        return data.getHttpVerb_Res().startsWith("PUT /messages/");
+        return data.getHttpVerb_Res().startsWith("DELETE /messages/");
     }
 
     @Override
     public IResponseContext exec(IRequestContext data) {
         ResponseContext responseContext = new ResponseContext();
+        Message messageToRemove=null;
 
-        Message messageToChange = repository.findEntity( parseInt(data.getHttpVerb_Res().substring("PUT /messages/".length(),data.getHttpVerb_Res().indexOf(" HTTP/"))));
-        if(messageToChange!= null)
-        {
-            messageToChange.setContent(data.getPayload());
-            repository.persistEntity(messageToChange);
+        if(repository.deleteEntity( parseInt(data.getHttpVerb_Res().substring("DELETE /messages/".length(),data.getHttpVerb_Res().indexOf(" HTTP/")))))
             responseContext.setHttpStatusCode("HTTP/1.1 200");
-        }
         else
             responseContext.setHttpStatusCode("HTTP/1.1 400");
-
 
         responseContext.getHeaders().put("Connection", "close");
         responseContext.getHeaders().put("Content-Length", "0");
         responseContext.getHeaders().put("Content-Type", "text/plain");
+
         return responseContext;
     }
 }

@@ -22,11 +22,13 @@ public class WorkerThread implements Runnable {
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
             BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
 
+            //read in Request
             requestContext = new RequestContext(reader);
 
             if (!requestContext.getHeaders().isEmpty()) {
                 System.out.println(requestContext.formatedString());
 
+                //Check supported Methods
                 for (IHTTPMethod method : registeredMethods) {
                     if (method.analyse(requestContext)) {
                         method.exec(requestContext).sendResponse(writer);
@@ -36,12 +38,10 @@ public class WorkerThread implements Runnable {
             }
 
 
-            writer.write("");
-
-
             writer.close();
             reader.close();
-            s.close(); // Close the socket itself
+            // Close the socket itself
+            s.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

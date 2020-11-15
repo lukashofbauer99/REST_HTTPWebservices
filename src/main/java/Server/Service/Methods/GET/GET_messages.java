@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 public class GET_messages implements IHTTPMethod {
@@ -33,14 +34,16 @@ public class GET_messages implements IHTTPMethod {
         ResponseContext responseContext = new ResponseContext();
 
 
-        String messagesString="";
-        for (Message message : repository.getAllEntities()) {
-            try {
-                messagesString+= mapper.writerWithDefaultPrettyPrinter().writeValueAsString(message);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
+        String messagesString = "";
+
+        List<Message> messages = new ArrayList<>(repository.getAllEntities());
+
+        try {
+            messagesString= mapper.writerWithDefaultPrettyPrinter().writeValueAsString(messages);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
         }
+
         responseContext.setPayload(messagesString);
         responseContext.setHttpStatusCode("HTTP/1.1 200");
         responseContext.getHeaders().put("Content-Length",  String.valueOf(messagesString.length()));

@@ -39,6 +39,7 @@ public class RequestContext implements IRequestContext{
             httpVerb_Res=line;
         }
 
+        //read line after line and fill into Map
         while ( (line=reader.readLine())!=null ) {
             if (line.isBlank() )
                 break;
@@ -51,6 +52,10 @@ public class RequestContext implements IRequestContext{
     }
 
     private String readHttpBody(BufferedReader reader, int contentLength) throws IOException {
+        if(contentLength==0)
+        {
+            return "";
+        }
         StringBuilder sb = new StringBuilder(10000);
         char[] buf = new char[1024];
         int totalLen = 0;
@@ -67,16 +72,16 @@ public class RequestContext implements IRequestContext{
 
     public String formatedString()
     {
-        String returnString="REQUEST:\n";
-        returnString+=httpVerb_Res+"\n\n";
-        returnString+="HEADERS:\n";
+        StringBuilder returnString= new StringBuilder("REQUEST:\n");
+        returnString.append(httpVerb_Res).append("\n\n");
+        returnString.append("HEADERS:\n");
         for (Map.Entry<String, String> entry : headers.entrySet()) {
-            returnString+=entry.getKey()+": "+entry.getValue()+"\n";
+            returnString.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
         }
-        returnString+="\n";
-        returnString +="PAYLOAD:\n";
-        returnString +=payload;
-        return returnString;
+        returnString.append("\n");
+        returnString.append("PAYLOAD:\n");
+        returnString.append(payload);
+        return returnString.toString();
     }
 
 

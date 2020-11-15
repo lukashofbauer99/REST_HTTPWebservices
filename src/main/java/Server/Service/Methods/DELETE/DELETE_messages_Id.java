@@ -26,7 +26,6 @@ public class DELETE_messages_Id implements IHTTPMethod {
     @Override
     public IResponseContext exec(IRequestContext data) {
         ResponseContext responseContext = new ResponseContext();
-        Message messageToRemove=null;
 
         if(repository.deleteEntity( parseInt(data.getHttpVerb_Res().substring("DELETE /messages/".length(),data.getHttpVerb_Res().indexOf(" HTTP/")))))
             responseContext.setHttpStatusCode("HTTP/1.1 200");

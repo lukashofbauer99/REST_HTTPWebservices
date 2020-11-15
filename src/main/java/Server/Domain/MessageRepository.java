@@ -34,6 +34,7 @@ public class MessageRepository implements IRepository<Message> {
             if (!f.exists()) {
                 entitiy.setId(getNextID());
             }
+            //write JSON value to file
             Files.writeString(Path.of(messagePath + entitiy.getId() + ".json"), mapper.writerWithDefaultPrettyPrinter().writeValueAsString(entitiy));
         } catch (IOException e) {
             System.out.println("An error occurred while saving the message");
@@ -44,6 +45,7 @@ public class MessageRepository implements IRepository<Message> {
 
     public Message findEntity(int id) {
         try {
+            //read JSON value from file
             return mapper.readValue(Files.readString(Path.of(messagePath + id + ".json")), Message.class);
         }
         catch(NoSuchFileException e)
@@ -74,14 +76,17 @@ public class MessageRepository implements IRepository<Message> {
     public List<Message> getAllEntities() {
         List<Message> messages = new ArrayList<>();
         File directoryPath = new File(messagePath);
-        //List of all files and directories
+
+        //List of all files
         String[] contents = directoryPath.list();
 
-        for (String content : contents) {
-            try {
-                messages.add(mapper.readValue(Files.readString(Path.of(messagePath + content)), Message.class));
-            } catch (IOException e) {
-                e.printStackTrace();
+        if (contents!=null) {
+            for (String content : contents) {
+                try {
+                    messages.add(mapper.readValue(Files.readString(Path.of(messagePath + content)), Message.class));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         return messages;

@@ -15,10 +15,6 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
-//200, 201, 400, 404
-//Postman / Insomnia
-//Selenium
-//TODO add threading
 public class MainServer implements Runnable {
 
     private static ServerSocket _listener = null;
@@ -35,10 +31,10 @@ public class MainServer implements Runnable {
         registeredMethods.add(new PUT_messages_Id());
         registeredMethods.add(new GET_messages_Id());
         registeredMethods.add(new POST_messages());
-
         registeredMethods.add(new NotFound());
 
 
+        //Create Socket that listens on port 8000
         try {
             _listener = new ServerSocket(8000, 5);
         } catch (IOException e) {
@@ -51,6 +47,7 @@ public class MainServer implements Runnable {
         while (true) {
             try {
                 IMySocket s = new MySocket(_listener.accept());
+                //Start Thread for Connection
                 new Thread(new WorkerThread(s,registeredMethods)).start();
 
 
